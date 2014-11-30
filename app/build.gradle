@@ -1,0 +1,100 @@
+apply plugin: 'com.android.application' //Gradle Android Plugin.
+
+android {
+    compileSdkVersion 21 // Android SDK Version using for Compile the source.
+    buildToolsVersion "21.1.1" // Built tool version.
+
+    defaultConfig {
+        applicationId "com.gdemo.gradledemo" // Package name of the Application (Application ID).
+        minSdkVersion 18 //Minimum Android support version of the application.
+        targetSdkVersion 21 //Targeted Android support version of the application.
+        versionCode 1  // Version code of the Application. 1,2,3.... n.
+        versionName "1.0" // Version name of the application 1.0,2.0...
+        buildConfigField "String", "WESERVICE_URL", "\"http://localhost/api\""
+    }
+
+    //A Product flavor defines a customized version of the application build by the project.
+    //A single project can have different flavors which change the generated application.
+    productFlavors {
+        freeapp {
+            applicationId "com.gdemo.gradledemo.free"
+            minSdkVersion 18
+            targetSdkVersion 21
+            versionCode 1
+            versionName "1.0"
+            buildConfigField "String", "WESERVICE_URL", "\"http://free_server_url/api\""
+        }
+
+        proapp {
+            applicationId "com.gdemo.gradledemo.pro"
+            minSdkVersion 18
+            targetSdkVersion 21
+            versionCode 1
+            versionName "1.0"
+            buildConfigField "String", "WESERVICE_URL", "\"http://pro_server_url/api/\""
+        }
+    }
+
+    compileOptions {
+        //Java source and target compatibility.
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+
+    //To retrieve the Production keystore file path,key Alias and password.
+    //It is read from the keystore.properties file from the root folder.
+    File signFile = rootProject.file('keystore.properties')
+    if (signFile.exists()) {
+        Properties properties = new Properties()
+        properties.load(new FileInputStream(signFile))
+
+        signingConfigs {
+            //Signing configuration for debug apk file.
+            debug {
+                storeFile file("../debug.keystore")
+                storePassword "android"
+                keyAlias "androiddebugkey"
+                keyPassword "android"
+            }
+            // Signing configuration for release apk file
+            release {
+                storeFile file(properties['keystorePath'])
+                storePassword properties['storePassword']
+                keyAlias properties['keyAlias']
+                keyPassword properties['keyPassword']
+            }
+        }
+
+    }
+    buildTypes {
+        //Define and invoke the config for debug build file.
+        debug {
+            debuggable true
+            signingConfig signingConfigs.debug
+        }
+        //Define and invoke the config for release build file.
+        release {
+            //Java class file shrinker, optimizer, obfuscator, and preverifier.
+            // It detects and removes unused classes, fields, methods, and attributes.
+            //Refer the link: http://proguard.sourceforge.net/index.html#manual/gradle.html
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), file('proguard-project.txt')
+            signingConfig signingConfigs.release
+        }
+    }
+    //TO define the lint check configuration.
+    lintOptions {
+        abortOnError false
+    }
+}
+    dependencies {
+        // Module dependency
+       // compile project(":lib") //If you have any library module inside your project make use of it.
+
+        // Remote binary dependency
+        compile 'com.android.support:appcompat-v7:21.0.2'
+
+        // Local binary dependency
+        compile fileTree(dir: 'libs', include: ['*.jar'])
+
+    }
+
